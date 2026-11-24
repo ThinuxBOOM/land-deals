@@ -24,6 +24,8 @@ export function PropertyForm({ initial }: Props) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingRef = useRef<PendingImage[]>([]);
+  const propertyIdRef = useRef<string | null>(initial?.id ?? null);
+  const uploadedPreviewsRef = useRef(new Set<string>());
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [propertyType, setPropertyType] = useState<PropertyType>(initial?.property_type ?? "land");
@@ -71,21 +73,24 @@ export function PropertyForm({ initial }: Props) {
     event.preventDefault();
     setError("");
     setSaving(true);
-    const client = createClient();
     const values = { title: title.trim(), description: description.trim() || null, property_type: propertyType, price: Number(price), location: location.trim(), features: features.split(",").map((feature) => feature.trim()).filter(Boolean), status };
     try {
-      let propertyId = initial?.id;
-      if (initial) {
-        const { error: updateError } = await client.from("properties").update(values).eq("id", initial.id);
+      const client = createClient();
+      let propertyId = propertyIdRef.current;
+      if (propertyId) {
+        const { error: updateError } = await client.from("properties").update(values).eq("id", propertyId);
         if (updateError) throw new Error(updateError.message);
       } else {
         const { data, error: insertError } = await client.from("properties").insert(values).select("id").single();
         if (insertError) throw new Error(insertError.message);
         propertyId = data.id;
+        propertyIdRef.current = propertyId;
       }
       if (!propertyId) throw new Error("The property could not be saved.");
 
-      for (const { file } of pendingImages) {
+      for (const image of pendingImages) {
+        if (uploadedPreviewsRef.current.has(image.preview)) continue;
+        const { file } = image;
         const path = `${propertyId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
         const { error: uploadError } = await client.storage.from("property-images").upload(path, file, { upsert: false, contentType: file.type });
         if (uploadError) throw new Error(`Property was saved, but an image could not be uploaded: ${uploadError.message}`);
@@ -96,6 +101,7 @@ export function PropertyForm({ initial }: Props) {
           if (removeError) console.error("Unable to remove an unlinked property image:", removeError.message);
           throw new Error(`Property was saved, but its image could not be linked: ${imageError.message}`);
         }
+        uploadedPreviewsRef.current.add(image.preview);
       }
       router.push("/admin");
       router.refresh();
@@ -122,11 +128,11 @@ export function PropertyForm({ initial }: Props) {
         </div>
 
         <div className="border-t border-[#edf0eb] pt-6">
-          <div className="flex items-start justify-between gap-4"><div><h2 className="text-sm font-semibold text-ink">Property photos</h2><p className="mt-1 text-xs text-muted">Upload images directly to your Supabase storage.</p></div><button type="button" onClick={() => inputRef.current?.click()} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#dce2db] px-4 py-2 text-xs font-medium text-forest hover:bg-[#f5f7f3]"><ImagePlus size={15} /> Add photos</button></div>
+          <div className="flex items-start justify-between gap-4"><div><h2 className="text-sm font-semibold text-ink">Property photos</h2><p className="mt-1 text-xs text-muted">Upload images directly to your Supabase storage.</p></div><button type="button" disabled={saving} onClick={() => inputRef.current?.click()} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#dce2db] px-4 py-2 text-xs font-medium text-forest hover:bg-[#f5f7f3] disabled:opacity-50"><ImagePlus size={15} /> Add photos</button></div>
           <input ref={inputRef} type="file" accept="image/*" multiple onChange={(event) => chooseFiles(event.target.files)} className="hidden" />
           {(existingImages.length > 0 || pendingImages.length > 0) ? <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {existingImages.map((image) => <div key={image.id} className="relative"><div className="property-image aspect-[4/3] rounded-xl bg-[#e4e9e2]" style={{ backgroundImage: `url("${image.image_url}")` }} /><button type="button" aria-label="Remove image" onClick={() => void removeExisting(image)} className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-[#a55a55] hover:bg-white"><X size={15} /></button></div>)}
-            {pendingImages.map((image, index) => <div key={image.preview} className="relative"><div className="property-image aspect-[4/3] rounded-xl bg-[#e4e9e2]" style={{ backgroundImage: `url("${image.preview}")` }} /><button type="button" aria-label="Remove selected image" onClick={() => removePending(index)} className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-[#a55a55] hover:bg-white"><Trash2 size={14} /></button><span className="absolute bottom-2 left-2 rounded bg-white/90 px-2 py-1 text-[10px] text-ink">New photo</span></div>)}
+            {pendingImages.map((image, index) => <div key={image.preview} className="relative"><div className="property-image aspect-[4/3] rounded-xl bg-[#e4e9e2]" style={{ backgroundImage: `url("${image.preview}")` }} /><button type="button" disabled={saving} aria-label="Remove selected image" onClick={() => removePending(index)} className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-[#a55a55] hover:bg-white disabled:opacity-50"><Trash2 size={14} /></button><span className="absolute bottom-2 left-2 rounded bg-white/90 px-2 py-1 text-[10px] text-ink">New photo</span></div>)}
           </div> : <button type="button" onClick={() => inputRef.current?.click()} className="mt-4 flex w-full flex-col items-center rounded-xl border border-dashed border-[#d9e0d8] bg-[#fafbf8] px-4 py-9 text-center hover:bg-[#f5f7f3]"><ImagePlus size={22} className="text-[#7b887d]" /><span className="mt-2 text-sm font-medium text-ink">Choose property photos</span><span className="mt-1 text-xs text-muted">PNG, JPG or WebP</span></button>}
         </div>
         {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}

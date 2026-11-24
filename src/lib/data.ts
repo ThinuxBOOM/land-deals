@@ -21,6 +21,19 @@ export async function getProperties(): Promise<PropertyWithImages[]> {
   return (data ?? []) as PropertyWithImages[];
 }
 
+export async function getProperty(id: string): Promise<PropertyWithImages | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return null;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*, property_images(id, image_url)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`Unable to load property: ${error.message}`);
+  return data as PropertyWithImages | null;
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return defaultSettings;

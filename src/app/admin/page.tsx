@@ -73,7 +73,7 @@ export default function AdminListingsPage() {
       <div className="mt-7 overflow-hidden rounded-2xl border border-[#e3e8e1] bg-white">
         <div className="flex flex-col justify-between gap-3 border-b border-[#edf0eb] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
           <h2 className="text-sm font-semibold text-ink">All properties <span className="ml-1 font-normal text-muted">({properties.length})</span></h2>
-          <label className="relative w-full sm:max-w-[270px]"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#89938b]" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search listings" className="admin-input h-10 pl-9 text-sm" /></label>
+          <label className="relative w-full sm:max-w-[270px]"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#89938b]" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search listings" className="admin-input input-with-icon h-10 text-sm" /></label>
         </div>
         {loading ? <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted"><LoaderCircle size={17} className="animate-spin" /> Loading properties…</div> : filtered.length ? (
           <div className="overflow-x-auto">

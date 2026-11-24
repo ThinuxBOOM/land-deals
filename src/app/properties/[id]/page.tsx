@@ -5,14 +5,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PropertyViewCounter } from "@/components/property-view-counter";
 import { PropertyGallery } from "@/components/property-gallery";
-import { getProperties, getSiteSettings } from "@/lib/data";
+import { getProperty, getSiteSettings } from "@/lib/data";
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [properties, settings] = await Promise.all([getProperties(), getSiteSettings()]);
-  const property = properties.find((item) => item.id === id);
+  const [property, settings] = await Promise.all([getProperty(id), getSiteSettings()]);
   if (!property) notFound();
   const images = property.property_images.map((image) => image.image_url);
   const whatsapp = settings.whatsapp_number.replace(/\D/g, "");

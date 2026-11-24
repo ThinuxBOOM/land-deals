@@ -10,7 +10,8 @@ export default async function HomePage() {
     ? `https://wa.me/${settings.whatsapp_number.replace(/\D/g, "")}`
     : settings.display_email
       ? `mailto:${settings.display_email}`
-      : "#properties";
+      : "/#properties";
+  const hasContact = Boolean(settings.whatsapp_number || settings.display_email);
   return (
     <>
       <SiteHeader />
@@ -56,7 +57,7 @@ export default async function HomePage() {
         </section>
         <section id="contact" className="mx-auto flex max-w-[1400px] flex-col justify-between gap-6 px-5 py-16 md:flex-row md:items-center md:px-10 md:py-20">
           <div><p className="text-xs font-semibold uppercase tracking-[.2em] text-[#7b887d]">Start somewhere</p><h2 className="editorial-serif mt-3 text-4xl text-ink">Tell us what you&apos;re dreaming up.</h2></div>
-          <a href={contactHref} className="inline-flex w-fit items-center gap-2 rounded-full bg-forest px-6 py-3.5 text-sm font-medium text-white hover:bg-[#193b29]">Get in touch <ArrowUpRight size={16} /></a>
+          <a href={contactHref} target={settings.whatsapp_number ? "_blank" : undefined} rel={settings.whatsapp_number ? "noreferrer" : undefined} className="inline-flex w-fit items-center gap-2 rounded-full bg-forest px-6 py-3.5 text-sm font-medium text-white hover:bg-[#193b29]">{hasContact ? "Get in touch" : "Explore properties"} <ArrowUpRight size={16} /></a>
         </section>
       </main>
       <SiteFooter />

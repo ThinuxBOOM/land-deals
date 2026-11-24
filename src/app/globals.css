@@ -23,4 +23,5 @@ button, input, select, textarea { font: inherit; }
 }
 .property-image { background-position: center; background-size: cover; }
 .admin-input { width: 100%; border: 1px solid #dce2db; border-radius: 10px; padding: 11px 13px; background: white; color: var(--ink); outline: none; }
+.input-with-icon { padding-left: 2.75rem; }
 .admin-input:focus { border-color: #547b61; box-shadow: 0 0 0 3px rgba(84,123,97,.12); }

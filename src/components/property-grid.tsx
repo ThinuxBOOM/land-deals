@@ -40,7 +40,7 @@ export function PropertyGrid({ properties }: { properties: PropertyWithImages[] 
           <label className="relative">
             <span className="sr-only">Search location</span>
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#89938b]" />
-            <input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Search a location" className="admin-input h-11 pl-10 text-sm" />
+            <input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Search a location" className="admin-input input-with-icon h-11 text-sm" />
           </label>
           <select value={category} onChange={(event) => setCategory(event.target.value)} className="admin-input h-11 text-sm">
             <option value="all">All property types</option><option value="land">Land</option><option value="apartment">Apartments</option><option value="house">Houses</option>
